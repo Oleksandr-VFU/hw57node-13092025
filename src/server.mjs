@@ -22,91 +22,107 @@ function setHeaders(res, body, statusCode = 200) {
 	});
 }
 
+function handleHome(res) {
+	const body = homePage();
+	setHeaders(res, body);
+	res.end(body);
+}
+
+function handleAbout(res) {
+	const body = aboutPage();
+	setHeaders(res, body);
+	res.end(body);
+}
+
+function handleContact(res) {
+	const body = contactPage();
+	setHeaders(res, body);
+	res.end(body);
+}
+
+function handleNotFound(res) {
+	const body = notFoundPage();
+	setHeaders(res, body, 404);
+	res.end(body);
+}
+
+function handle405(res) {
+	const body = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" /><title>405 Method Not Allowed</title></head><body><h1>Method Not Allowed</h1></body></html>';
+	setHeaders(res, body, 405);
+	res.end(body);
+}
+
+function handleSubmit(req, res) {
+	let data = '';
+	req.on('data', chunk => {
+		data += chunk;
+		if (data.length > 1e6) {
+			req.connection.destroy();
+		}
+	});
+	req.on('end', () => {
+		let formData;
+		try {
+			formData = parseQuery(data);
+		} catch (e) {
+			const body = serverErrorPage();
+			setHeaders(res, body, 500);
+			res.end(body);
+			return;
+		}
+		if (typeof formData !== 'object' || formData === null) {
+			const body = serverErrorPage();
+			setHeaders(res, body, 500);
+			res.end(body);
+			return;
+		}
+		try {
+			if (!validateFormData(formData)) {
+				const body = badRequestPage();
+				setHeaders(res, body, 400);
+				res.end(body);
+				return;
+			}
+			const body = formConfirmationPage(formData.name, formData.email);
+			setHeaders(res, body);
+			res.end(body);
+		} catch (err) {
+			const body = serverErrorPage();
+			setHeaders(res, body, 500);
+			res.end(body);
+		}
+	});
+}
+
 const server = http.createServer((req, res) => {
 	const parsedUrl = parseUrl(req.url, true);
 	const method = req.method;
 	const pathname = parsedUrl.pathname;
 
-	// GET маршрути
 	if (method === 'GET') {
-		let body;
 		if (pathname === '/') {
-			body = homePage();
-			setHeaders(res, body);
-			res.end(body);
+			handleHome(res);
 		} else if (pathname === '/about') {
-			body = aboutPage();
-			setHeaders(res, body);
-			res.end(body);
+			handleAbout(res);
 		} else if (pathname === '/contact') {
-			body = contactPage();
-			setHeaders(res, body);
-			res.end(body);
+			handleContact(res);
 		} else {
-			body = notFoundPage();
-			setHeaders(res, body, 404);
-			res.end(body);
+			handleNotFound(res);
 		}
 		return;
 	}
 
-	// POST маршрут
 	if (method === 'POST' && pathname === '/submit') {
-		let data = '';
-		req.on('data', chunk => {
-			data += chunk;
-			// Захист від великих запитів
-			if (data.length > 1e6) {
-				req.connection.destroy();
-			}
-		});
-		req.on('end', () => {
-			let formData;
-			try {
-				formData = parseQuery(data);
-			} catch (e) {
-				const body = serverErrorPage();
-				setHeaders(res, body, 500);
-				res.end(body);
-				return;
-			}
-			if (typeof formData !== 'object' || formData === null) {
-				const body = serverErrorPage();
-				setHeaders(res, body, 500);
-				res.end(body);
-				return;
-			}
-			try {
-				if (!validateFormData(formData)) {
-					const body = badRequestPage();
-					setHeaders(res, body, 400);
-					res.end(body);
-					return;
-				}
-				const body = formConfirmationPage(formData.name, formData.email);
-				setHeaders(res, body);
-				res.end(body);
-			} catch (err) {
-				const body = serverErrorPage();
-				setHeaders(res, body, 500);
-				res.end(body);
-			}
-		});
+		handleSubmit(req, res);
 		return;
 	}
 
-	// POST на неіснуючі маршрути
 	if (method === 'POST') {
-		const body = notFoundPage();
-		setHeaders(res, body, 404);
-		res.end(body);
+		handleNotFound(res);
 		return;
 	}
 
-	// 405 для інших методів
-	const body = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" /><title>405 Method Not Allowed</title></head><body><h1>Method Not Allowed</h1></body></html>';
-	setHeaders(res, body, 405);
-	res.end(body);
+	handle405(res);
 });
 
 server.listen(PORT, () => {
