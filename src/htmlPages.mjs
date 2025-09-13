@@ -23,7 +23,28 @@ export function aboutPage() {
 }
 
 export function contactPage() {
-  return getHtmlPage('Contact', 'Contact', 'Get in touch');
+  return `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Contact</title>
+  </head>
+  <body>
+    <h1>Contact</h1>
+    <p>Get in touch</p>
+    <form method="POST" action="/submit">
+      <label>
+        Name: <input type="text" name="name" required />
+      </label>
+      <br />
+      <label>
+        Email: <input type="email" name="email" required />
+      </label>
+      <br />
+      <button type="submit">Submit</button>
+    </form>
+  </body>
+</html>`;
 }
 
 export function notFoundPage() {
