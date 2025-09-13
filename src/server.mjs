@@ -28,5 +28,36 @@ const server = http.createServer((req, res) => {
 	const method = req.method;
 	const pathname = parsedUrl.pathname;
 
+	// GET маршрути
+	if (method === 'GET') {
+		let body;
+		if (pathname === '/') {
+			body = homePage();
+			setHeaders(res, body);
+			res.end(body);
+		} else if (pathname === '/about') {
+			body = aboutPage();
+			setHeaders(res, body);
+			res.end(body);
+		} else if (pathname === '/contact') {
+			body = contactPage();
+			setHeaders(res, body);
+			res.end(body);
+		} else {
+			body = notFoundPage();
+			setHeaders(res, body, 404);
+			res.end(body);
+		}
+		return;
+	}
+
+
+
+server.listen(PORT, () => {
+	if (process.env.NODE_ENV !== 'test') {
+		console.log(`Server running on port ${PORT}`);
+	}
+});
+
 // Обов'язково експортувати створений сервер для тестів
 export { server };
