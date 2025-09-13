@@ -1,35 +1,72 @@
-# ДЗ #4 Node.js
 
-## 1. Завантажуємо репозиторій та розгортаємо проект
+# Node.js HTTP Server (ДЗ #4)
 
-`npm install`
+## Встановлення та запуск
 
-або
+1. Встановіть залежності:
+	 ```
+	 yarn
+	 # або
+	 npm install
+	 ```
+2. Запустіть сервер:
+	 ```
+	 node ./src/server.mjs
+	 ```
+	 Сервер за замовчуванням слухає порт 3000. Для зміни порту використовуйте змінну середовища `PORT`.
 
-`yarn`
+## Маршрути
 
-_yarn повинен бути встановлений глобально, це можна зробити командой:_
+### GET
 
-`npm i -g yarn`
+- `/` — Головна сторінка
+	- Відповідь: HTML з заголовком "Home" і текстом "Welcome to the Home Page"
+- `/about` — Про нас
+	- Відповідь: HTML з "About" і "Learn more about us"
+- `/contact` — Контакти
+    - Відповідь: HTML з "Contact" і "Get in touch"
+    - На сторінці відображається форма для введення імені та email користувача
+    - Форма проходить базову валідацію на стороні і браузера і сервера (перевірка наявності і коректності email)
+    - Після відправки форми дані обробляються маршрутом `/submit`
+- Інші маршрути — 404 Not Found (HTML з "Page Not Found")
 
-## 2. Виконуємо задачі для .js файлів
+### POST
 
-## 3. Запускаємо тести
+- `/submit` — Приймає форму (Content-Type: application/x-www-form-urlencoded)
+	- Очікує поля: `name`, `email`
+	- Коректні дані: HTML з підтвердженням (ім'я та email)
+	- Некоректні дані: 400 Bad Request (HTML з "Invalid form data")
 
-`yarn test`
+## Приклади запитів
 
-або
+**GET**
+```
+curl http://localhost:3000/
+curl http://localhost:3000/about
+curl http://localhost:3000/contact
+curl http://localhost:3000/unknown
+```
 
-`npm test`
+**POST**
+```
+curl -X POST http://localhost:3000/submit -d "name=Ivan&email=ivan@email.com" -H "Content-Type: application/x-www-form-urlencoded"
+curl -X POST http://localhost:3000/submit -d "name=&email=" -H "Content-Type: application/x-www-form-urlencoded"
+```
 
-## 4. Перевіряємо результат
+## Обмеження реалізації
 
-Якщо **тести не пройдені**
+- Максимальний розмір POST-запиту: ~1MB
+- Валідація email — базова (перевірка формату)
+- Використано лише вбудовані модулі Node.js (`http`, `url`, `querystring`)
+- Без сторонніх бібліотек (Express тощо)
 
-- Аналізуйте результати тестів, ідентифікуйте та виправляйте помилки у коді.
+---
 
-Якщо **тести пройдені**:
+## Тестування
 
-1. Зробіть скріншот пройдених тестів та відправте його як доказ виконання завдання.
-2. Завантажте ваш проект на GitHub.
-3. Надайте пряме посилання на файл (або файли) JavaScript (або TypeScript) у вашому проекті.
+Запустіть тести:
+```
+yarn test
+# або
+npm test
+```
